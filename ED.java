@@ -10,6 +10,10 @@ import javax.xml.bind.DatatypeConverter;
 import org.kohsuke.args4j.*;
 
 class Encryptor {
+  private static String encode(String data) {
+     return data.replaceAll("\\+","-").replaceAll("/","_").replaceAll("=",",");
+  }
+  
   public static String encrypt(String input, String key, String algo, String cipherString) throws NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException
   {
     byte[] crypted = null;
@@ -17,18 +21,21 @@ class Encryptor {
     Cipher cipher = Cipher.getInstance(cipherString);
     cipher.init(Cipher.ENCRYPT_MODE, skey);
     crypted = cipher.doFinal(input.getBytes());
-    return DatatypeConverter.printBase64Binary(crypted);
+    return encode(DatatypeConverter.printBase64Binary(crypted));
   }
 }
 
 class Decryptor {
+  private static String decode(String data) {
+     return data.replaceAll("-","\\+").replaceAll("_","/").replaceAll(",","=");
+  }
   public static String decrypt(String input, String key, String algo, String cipherString) throws NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException
   {
     byte[] crypted = null;
     SecretKeySpec skey = new SecretKeySpec(key.getBytes(), algo);
     Cipher cipher = Cipher.getInstance(cipherString);
     cipher.init(Cipher.DECRYPT_MODE, skey);
-    crypted = cipher.doFinal(DatatypeConverter.parseBase64Binary(input));
+    crypted = cipher.doFinal(DatatypeConverter.parseBase64Binary(decode(input)));
     return new String(crypted);
   }
 }
@@ -69,8 +76,6 @@ public class ED {
           if ( !decrypt ) {
              String encrypted = Encryptor.encrypt(data, key, algo, cipher);
              System.out.println("Encrypted :" + encrypted);
-             System.out.println("Encrypted (Encoded):" + encode(encrypted));
-             System.out.println("Encrypted (Decoded):" + decode(encrypted));
              System.out.println("Decrypted :" + Decryptor.decrypt(encrypted, key, algo, cipher));
           } else {
              System.out.println("Decrypted :" + Decryptor.decrypt(data, key, algo, cipher));
@@ -84,12 +89,5 @@ public class ED {
 
    }
 
-   private String encode(String data) {
-      return data.replaceAll("\\+","-").replaceAll("/","_").replaceAll("=",",");
-   }
-  
-   private String decode(String data) {
-      return data.replaceAll("-","\\+").replaceAll("_","/").replaceAll(",","=");
-   }
 }
 
